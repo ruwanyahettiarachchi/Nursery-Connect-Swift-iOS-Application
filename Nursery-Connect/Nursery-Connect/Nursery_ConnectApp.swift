@@ -12,7 +12,9 @@ import SwiftData
 struct Nursery_ConnectApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Child.self,
+            DiaryLog.self,
+            Incident.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
