@@ -42,6 +42,8 @@ struct AddDiaryView: View {
                 Toggle("Nappy Changed", isOn: $nappyChanged)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(NurseryTheme.pageBackground.ignoresSafeArea())
         .navigationTitle("New Diary Entry")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

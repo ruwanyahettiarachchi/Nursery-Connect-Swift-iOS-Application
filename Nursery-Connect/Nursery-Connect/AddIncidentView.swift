@@ -39,6 +39,8 @@ struct AddIncidentView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(NurseryTheme.pageBackground.ignoresSafeArea())
         .navigationTitle("New Incident")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
