@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \Child.name) private var children: [Child]
 
     var body: some View {
@@ -29,7 +30,26 @@ struct DashboardView: View {
                 .padding(.vertical, 16)
             }
             .background(NurseryTheme.pageBackground.ignoresSafeArea())
+            .task {
+                await seedSampleChildrenIfNeeded()
+            }
             .navigationTitle("Little Stars Nursery")
+        }
+    }
+
+    @MainActor
+    private func seedSampleChildrenIfNeeded() async {
+        guard children.isEmpty else { return }
+
+        let samples: [Child] = [
+            Child(name: "Emma Brown", age: 3),
+            Child(name: "Oliver Smith", age: 4),
+            Child(name: "Mia Johnson", age: 2),
+            Child(name: "Noah Williams", age: 5),
+        ]
+
+        for child in samples {
+            modelContext.insert(child)
         }
     }
 
