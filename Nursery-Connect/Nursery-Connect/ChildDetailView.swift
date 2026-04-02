@@ -7,6 +7,14 @@ struct ChildDetailView: View {
     @Query private var diaryLogs: [DiaryLog]
     @Query private var incidents: [Incident]
 
+    private enum ActiveSheet: String, Identifiable {
+        case addDiary
+        case addIncident
+        var id: String { rawValue }
+    }
+
+    @State private var activeSheet: ActiveSheet?
+
     init(child: Child) {
         self.child = child
         let childName = child.name
@@ -39,9 +47,25 @@ struct ChildDetailView: View {
             .padding(.vertical, 16)
             .padding(.bottom, 8)
         }
-        .background(NurseryTheme.pageBackground.ignoresSafeArea())
+        // Do not extend background under the nav bar — full-screen ignoresSafeArea can block the back button.
+        .background(NurseryTheme.pageBackground.ignoresSafeArea(edges: [.horizontal, .bottom]))
         .navigationTitle(child.name)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(false)
+        .sheet(item: $activeSheet) { sheet in
+            NavigationStack {
+                Group {
+                    switch sheet {
+                    case .addDiary:
+                        AddDiaryView(child: child)
+                    case .addIncident:
+                        AddIncidentView(child: child)
+                    }
+                }
+                .tint(NurseryTheme.accent)
+            }
+            .presentationDragIndicator(.visible)
+        }
     }
 
     private var headerCard: some View {
@@ -102,8 +126,8 @@ struct ChildDetailView: View {
                 }
             }
 
-            NavigationLink {
-                AddDiaryView(child: child)
+            Button {
+                activeSheet = .addDiary
             } label: {
                 Label("Add Diary Entry", systemImage: "plus.circle.fill")
                     .font(.subheadline.weight(.semibold))
@@ -111,11 +135,18 @@ struct ChildDetailView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(NurseryTheme.diaryTint.opacity(0.18))
+                            .fill(
+                                LinearGradient(
+                                    colors: [NurseryTheme.diaryTint.opacity(0.35), NurseryTheme.mint.opacity(0.4)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
                     )
-                    .foregroundStyle(NurseryTheme.accent)
+                    .foregroundStyle(.white)
             }
             .buttonStyle(.plain)
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .nurseryCard()
     }
@@ -142,8 +173,8 @@ struct ChildDetailView: View {
                 }
             }
 
-            NavigationLink {
-                AddIncidentView(child: child)
+            Button {
+                activeSheet = .addIncident
             } label: {
                 Label("Add Incident", systemImage: "plus.circle.fill")
                     .font(.subheadline.weight(.semibold))
@@ -151,11 +182,18 @@ struct ChildDetailView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(NurseryTheme.incidentTint.opacity(0.2))
+                            .fill(
+                                LinearGradient(
+                                    colors: [NurseryTheme.incidentTint.opacity(0.85), NurseryTheme.sunshine.opacity(0.75)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
                     )
-                    .foregroundStyle(NurseryTheme.accent)
+                    .foregroundStyle(.white)
             }
             .buttonStyle(.plain)
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .nurseryCard()
     }
