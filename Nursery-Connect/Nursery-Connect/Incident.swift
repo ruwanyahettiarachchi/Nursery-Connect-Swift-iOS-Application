@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+// Incident report: documents events for safeguarding and EYFS-related duty of care and record-keeping.
 @Model
 final class Incident {
     var childName: String

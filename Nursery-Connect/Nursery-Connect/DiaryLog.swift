@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+// Daily diary: supports EYFS-aligned recording of activities, care, and routine (e.g. rest, wellbeing).
 @Model
 final class DiaryLog {
     var childName: String
