@@ -43,7 +43,7 @@ struct AddDiaryView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(NurseryTheme.pageBackground.ignoresSafeArea())
+        .background(NurseryTheme.pageBackground.ignoresSafeArea(edges: [.horizontal, .bottom]))
         .navigationTitle("New Diary Entry")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -66,6 +66,7 @@ struct AddDiaryView: View {
                         date: Date()
                     )
                     modelContext.insert(newLog)
+                    try? modelContext.save()
                     dismiss()
                 }
                 .disabled(activity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -75,7 +76,9 @@ struct AddDiaryView: View {
 }
 
 #Preview {
-    AddDiaryView(child: Child(name: "Ava", age: 3))
-        .modelContainer(for: [Child.self, DiaryLog.self, Incident.self], inMemory: true)
+    NavigationStack {
+        AddDiaryView(child: Child(name: "Ava", age: 3))
+    }
+    .modelContainer(for: [Child.self, DiaryLog.self, Incident.self], inMemory: true)
 }
 

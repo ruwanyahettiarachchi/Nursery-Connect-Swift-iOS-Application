@@ -40,7 +40,7 @@ struct AddIncidentView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(NurseryTheme.pageBackground.ignoresSafeArea())
+        .background(NurseryTheme.pageBackground.ignoresSafeArea(edges: [.horizontal, .bottom]))
         .navigationTitle("New Incident")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -60,6 +60,7 @@ struct AddIncidentView: View {
                         bodyPart: bodyPart
                     )
                     modelContext.insert(newIncident)
+                    try? modelContext.save()
                     dismiss()
                 }
                 .disabled(descriptionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -69,7 +70,9 @@ struct AddIncidentView: View {
 }
 
 #Preview {
-    AddIncidentView(child: Child(name: "Ava", age: 3))
-        .modelContainer(for: [Child.self, DiaryLog.self, Incident.self], inMemory: true)
+    NavigationStack {
+        AddIncidentView(child: Child(name: "Ava", age: 3))
+    }
+    .modelContainer(for: [Child.self, DiaryLog.self, Incident.self], inMemory: true)
 }
 

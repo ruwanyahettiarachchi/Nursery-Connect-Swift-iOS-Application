@@ -21,7 +21,6 @@ struct DashboardView: View {
                                 } label: {
                                     childRow(child)
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -29,7 +28,7 @@ struct DashboardView: View {
                 .padding(.horizontal, 18)
                 .padding(.vertical, 16)
             }
-            .background(NurseryTheme.pageBackground.ignoresSafeArea())
+            .background(NurseryTheme.pageBackground.ignoresSafeArea(edges: [.horizontal, .bottom]))
             .task {
                 await seedSampleChildrenIfNeeded()
             }
