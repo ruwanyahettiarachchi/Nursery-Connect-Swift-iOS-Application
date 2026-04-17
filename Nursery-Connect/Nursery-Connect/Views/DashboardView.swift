@@ -4,6 +4,7 @@ import SwiftData
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Child.name) private var children: [Child]
+    @State private var didAnimateListIn: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -23,6 +24,8 @@ struct DashboardView: View {
                                 }
                             }
                         }
+                        .opacity(didAnimateListIn ? 1.0 : 0.0)
+                        .offset(y: didAnimateListIn ? 0 : 12)
                     }
                 }
                 .padding(.horizontal, 18)
@@ -33,6 +36,11 @@ struct DashboardView: View {
                 await seedSampleChildrenIfNeeded()
             }
             .navigationTitle("Little Stars Nursery")
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.45)) {
+                    didAnimateListIn = true
+                }
+            }
         }
     }
 

@@ -12,6 +12,8 @@ struct AddDiaryView: View {
     @State private var napStart: Date = Date()
     @State private var napEnd: Date = Date()
     @State private var nappyChanged: Bool = false
+    @State private var alertMessage: String = ""
+    @State private var showAlert: Bool = false
 
     var body: some View {
         Form {
@@ -54,23 +56,44 @@ struct AddDiaryView: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
-                    let trimmedActivity = activity.trimmingCharacters(in: .whitespacesAndNewlines)
-
-                    let newLog = DiaryLog(
-                        childName: child.name,
-                        activity: trimmedActivity,
-                        mood: mood,
-                        napStart: napStart,
-                        napEnd: napEnd,
-                        nappyChanged: nappyChanged,
-                        date: Date()
-                    )
-                    modelContext.insert(newLog)
-                    try? modelContext.save()
-                    dismiss()
+                    saveDiaryEntry()
                 }
-                .disabled(activity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+        }
+        .alert("Unable to Save Diary Entry", isPresented: $showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+
+    private func saveDiaryEntry() {
+        let trimmedActivity = activity.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedActivity.isEmpty else {
+            alertMessage = "Please enter the child's activity before saving."
+            showAlert = true
+            return
+        }
+
+        let newLog = DiaryLog(
+            childName: child.name,
+            activity: trimmedActivity,
+            mood: mood,
+            napStart: napStart,
+            napEnd: napEnd,
+            nappyChanged: nappyChanged,
+            date: Date()
+        )
+        modelContext.insert(newLog)
+
+        do {
+            try modelContext.save()
+            dismiss()
+        } catch {
+            modelContext.delete(newLog)
+            alertMessage = "We couldn't save this diary entry. Please try again."
+            showAlert = true
         }
     }
 }

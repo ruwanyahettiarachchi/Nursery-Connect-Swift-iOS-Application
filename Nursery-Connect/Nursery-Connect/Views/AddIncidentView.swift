@@ -10,6 +10,8 @@ struct AddIncidentView: View {
     @State private var date: Date = Date()
     @State private var descriptionText: String = ""
     @State private var bodyPart: String = "Other"
+    @State private var alertMessage: String = ""
+    @State private var showAlert: Bool = false
 
     var body: some View {
         Form {
@@ -51,20 +53,41 @@ struct AddIncidentView: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Submit") {
-                    let trimmedDescription = descriptionText.trimmingCharacters(in: .whitespacesAndNewlines)
-
-                    let newIncident = Incident(
-                        childName: child.name,
-                        date: date,
-                        descriptionText: trimmedDescription,
-                        bodyPart: bodyPart
-                    )
-                    modelContext.insert(newIncident)
-                    try? modelContext.save()
-                    dismiss()
+                    submitIncident()
                 }
-                .disabled(descriptionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+        }
+        .alert("Unable to Submit Incident", isPresented: $showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+
+    private func submitIncident() {
+        let trimmedDescription = descriptionText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedDescription.isEmpty else {
+            alertMessage = "Please enter an incident description before submitting."
+            showAlert = true
+            return
+        }
+
+        let newIncident = Incident(
+            childName: child.name,
+            date: date,
+            descriptionText: trimmedDescription,
+            bodyPart: bodyPart
+        )
+        modelContext.insert(newIncident)
+
+        do {
+            try modelContext.save()
+            dismiss()
+        } catch {
+            modelContext.delete(newIncident)
+            alertMessage = "We couldn't submit this incident. Please try again."
+            showAlert = true
         }
     }
 }

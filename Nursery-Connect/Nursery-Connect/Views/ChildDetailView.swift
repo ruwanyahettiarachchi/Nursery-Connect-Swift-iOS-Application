@@ -14,6 +14,7 @@ struct ChildDetailView: View {
     }
 
     @State private var activeSheet: ActiveSheet?
+    @State private var didAnimateListIn: Bool = false
 
     init(child: Child) {
         self.child = child
@@ -46,12 +47,19 @@ struct ChildDetailView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 16)
             .padding(.bottom, 8)
+            .opacity(didAnimateListIn ? 1.0 : 0.0)
+            .offset(y: didAnimateListIn ? 0 : 10)
         }
         // Do not extend background under the nav bar — full-screen ignoresSafeArea can block the back button.
         .background(NurseryTheme.pageBackground.ignoresSafeArea(edges: [.horizontal, .bottom]))
         .navigationTitle(child.name)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.4)) {
+                didAnimateListIn = true
+            }
+        }
         .sheet(item: $activeSheet) { sheet in
             NavigationStack {
                 Group {
@@ -145,7 +153,7 @@ struct ChildDetailView: View {
                     )
                     .foregroundStyle(.white)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(NurseryTapAnimationStyle())
             .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .nurseryCard()
@@ -192,7 +200,7 @@ struct ChildDetailView: View {
                     )
                     .foregroundStyle(.white)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(NurseryTapAnimationStyle())
             .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .nurseryCard()
