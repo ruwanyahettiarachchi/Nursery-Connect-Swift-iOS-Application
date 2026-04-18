@@ -4,17 +4,38 @@ import SwiftData
 struct ChildDetailView: View {
     let child: Child
 
+    @Environment(\.modelContext) private var modelContext
     @Query private var diaryLogs: [DiaryLog]
     @Query private var incidents: [Incident]
 
-    private enum ActiveSheet: String, Identifiable {
+    private enum SheetRoute: Identifiable {
         case addDiary
+        case editDiary(DiaryLog)
         case addIncident
-        var id: String { rawValue }
+        case editIncident(Incident)
+
+        var id: String {
+            switch self {
+            case .addDiary:
+                return "addDiary"
+            case .editDiary(let log):
+                return "editDiary-\(ObjectIdentifier(log))"
+            case .addIncident:
+                return "addIncident"
+            case .editIncident(let incident):
+                return "editIncident-\(ObjectIdentifier(incident))"
+            }
+        }
     }
 
-    @State private var activeSheet: ActiveSheet?
+    @State private var sheetRoute: SheetRoute?
     @State private var didAnimateListIn: Bool = false
+
+    @State private var diaryLogPendingDelete: DiaryLog?
+    @State private var showDeleteDiaryConfirmation = false
+
+    @State private var incidentPendingDelete: Incident?
+    @State private var showDeleteIncidentConfirmation = false
 
     init(child: Child) {
         self.child = child
@@ -60,19 +81,51 @@ struct ChildDetailView: View {
                 didAnimateListIn = true
             }
         }
-        .sheet(item: $activeSheet) { sheet in
+        .sheet(item: $sheetRoute) { route in
             NavigationStack {
                 Group {
-                    switch sheet {
+                    switch route {
                     case .addDiary:
                         AddDiaryView(child: child)
+                    case .editDiary(let log):
+                        AddDiaryView(child: child, diaryLogToEdit: log)
                     case .addIncident:
                         AddIncidentView(child: child)
+                    case .editIncident(let incident):
+                        AddIncidentView(child: child, incidentToEdit: incident)
                     }
                 }
                 .tint(NurseryTheme.accent)
             }
             .presentationDragIndicator(.visible)
+        }
+        .alert("Delete diary entry?", isPresented: $showDeleteDiaryConfirmation) {
+            Button("Cancel", role: .cancel) {
+                diaryLogPendingDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let log = diaryLogPendingDelete {
+                    modelContext.delete(log)
+                    try? modelContext.save()
+                }
+                diaryLogPendingDelete = nil
+            }
+        } message: {
+            Text("This will permanently remove this diary entry from the device.")
+        }
+        .alert("Delete incident report?", isPresented: $showDeleteIncidentConfirmation) {
+            Button("Cancel", role: .cancel) {
+                incidentPendingDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let incident = incidentPendingDelete {
+                    modelContext.delete(incident)
+                    try? modelContext.save()
+                }
+                incidentPendingDelete = nil
+            }
+        } message: {
+            Text("This will permanently remove this incident from the device.")
         }
     }
 
@@ -135,7 +188,7 @@ struct ChildDetailView: View {
             }
 
             Button {
-                activeSheet = .addDiary
+                sheetRoute = .addDiary
             } label: {
                 Label("Add Diary Entry", systemImage: "plus.circle.fill")
                     .font(.subheadline.weight(.semibold))
@@ -182,7 +235,7 @@ struct ChildDetailView: View {
             }
 
             Button {
-                activeSheet = .addIncident
+                sheetRoute = .addIncident
             } label: {
                 Label("Add Incident", systemImage: "plus.circle.fill")
                     .font(.subheadline.weight(.semibold))
@@ -261,7 +314,24 @@ struct ChildDetailView: View {
                         .foregroundStyle(.secondary)
                     }
                 }
+
                 Spacer(minLength: 0)
+
+                Menu {
+                    Button("Edit", systemImage: "pencil") {
+                        sheetRoute = .editDiary(log)
+                    }
+                    Button("Delete", systemImage: "trash", role: .destructive) {
+                        diaryLogPendingDelete = log
+                        showDeleteDiaryConfirmation = true
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.title3)
+                        .foregroundStyle(NurseryTheme.accent.opacity(0.85))
+                        .frame(width: 36, height: 36)
+                        .contentShape(Rectangle())
+                }
             }
 
             Divider()
@@ -275,6 +345,10 @@ struct ChildDetailView: View {
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+                Text("(\(log.napDurationMinutes) min)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
                 Spacer(minLength: 0)
 
@@ -326,6 +400,22 @@ struct ChildDetailView: View {
                         }
                         .font(.caption)
                         .foregroundStyle(.secondary)
+
+                        Menu {
+                            Button("Edit", systemImage: "pencil") {
+                                sheetRoute = .editIncident(incident)
+                            }
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                incidentPendingDelete = incident
+                                showDeleteIncidentConfirmation = true
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.title3)
+                                .foregroundStyle(NurseryTheme.incidentTint.opacity(0.9))
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
+                        }
                     }
 
                     Text(incident.descriptionText)

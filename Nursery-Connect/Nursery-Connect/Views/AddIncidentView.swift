@@ -3,15 +3,36 @@ import SwiftData
 
 struct AddIncidentView: View {
     let child: Child
+    private let incidentToEdit: Incident?
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    @State private var date: Date = Date()
-    @State private var descriptionText: String = ""
-    @State private var bodyPart: String = "Other"
+    @State private var date: Date
+    @State private var descriptionText: String
+    @State private var bodyPart: String
     @State private var alertMessage: String = ""
     @State private var showAlert: Bool = false
+
+    private let maxDescriptionLength = 500
+
+    init(child: Child, incidentToEdit: Incident? = nil) {
+        self.child = child
+        self.incidentToEdit = incidentToEdit
+        if let incident = incidentToEdit {
+            _date = State(initialValue: incident.date)
+            _descriptionText = State(initialValue: incident.descriptionText)
+            _bodyPart = State(initialValue: incident.bodyPart)
+        } else {
+            _date = State(initialValue: Date())
+            _descriptionText = State(initialValue: "")
+            _bodyPart = State(initialValue: "Other")
+        }
+    }
+
+    private var isEditing: Bool { incidentToEdit != nil }
+
+    private var latestSelectableDate: Date { Date() }
 
     var body: some View {
         Form {
@@ -19,6 +40,7 @@ struct AddIncidentView: View {
                 DatePicker(
                     "Date",
                     selection: $date,
+                    in: ...latestSelectableDate,
                     displayedComponents: [.date, .hourAndMinute]
                 )
 
@@ -38,12 +60,22 @@ struct AddIncidentView: View {
                     }
                     TextEditor(text: $descriptionText)
                         .frame(minHeight: 140)
+                        .onChange(of: descriptionText) { _, newValue in
+                            if newValue.count > maxDescriptionLength {
+                                descriptionText = String(newValue.prefix(maxDescriptionLength))
+                            }
+                        }
                 }
+
+                Text("\(descriptionText.count)/\(maxDescriptionLength)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
         .scrollContentBackground(.hidden)
         .background(NurseryTheme.pageBackground.ignoresSafeArea(edges: [.horizontal, .bottom]))
-        .navigationTitle("New Incident")
+        .navigationTitle(isEditing ? "Edit Incident" : "New Incident")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -52,7 +84,7 @@ struct AddIncidentView: View {
                 }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Submit") {
+                Button(isEditing ? "Save" : "Submit") {
                     submitIncident()
                 }
             }
@@ -73,19 +105,38 @@ struct AddIncidentView: View {
             return
         }
 
-        let newIncident = Incident(
-            childName: child.name,
-            date: date,
-            descriptionText: trimmedDescription,
-            bodyPart: bodyPart
-        )
-        modelContext.insert(newIncident)
+        if date > latestSelectableDate {
+            alertMessage = "The incident date cannot be in the future. Please choose today or an earlier time."
+            showAlert = true
+            return
+        }
+
+        var insertedIncident: Incident?
+
+        if let editing = incidentToEdit {
+            editing.date = date
+            editing.descriptionText = trimmedDescription
+            editing.bodyPart = bodyPart
+            editing.childName = child.name
+        } else {
+            let newIncident = Incident(
+                childName: child.name,
+                date: date,
+                descriptionText: trimmedDescription,
+                bodyPart: bodyPart
+            )
+            modelContext.insert(newIncident)
+            insertedIncident = newIncident
+        }
 
         do {
             try modelContext.save()
+            Haptics.incidentSubmitted()
             dismiss()
         } catch {
-            modelContext.delete(newIncident)
+            if let insertedIncident {
+                modelContext.delete(insertedIncident)
+            }
             alertMessage = "We couldn't submit this incident. Please try again."
             showAlert = true
         }
@@ -98,4 +149,3 @@ struct AddIncidentView: View {
     }
     .modelContainer(for: [Child.self, DiaryLog.self, Incident.self], inMemory: true)
 }
-

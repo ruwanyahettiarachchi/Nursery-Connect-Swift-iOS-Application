@@ -8,17 +8,20 @@ final class Incident {
     var date: Date
     var descriptionText: String
     var bodyPart: String
+    /// Creation timestamp. SwiftData models use stored `var` properties; do not mutate after init.
+    var createdAt: Date
 
     init(
         childName: String,
         date: Date,
         descriptionText: String,
-        bodyPart: String
+        bodyPart: String,
+        createdAt: Date = Date()
     ) {
         self.childName = childName
         self.date = date
         self.descriptionText = descriptionText
         self.bodyPart = bodyPart
+        self.createdAt = createdAt
     }
 }
-

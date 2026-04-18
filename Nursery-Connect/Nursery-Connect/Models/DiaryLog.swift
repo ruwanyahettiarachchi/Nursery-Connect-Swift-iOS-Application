@@ -11,6 +11,8 @@ final class DiaryLog {
     var napEnd: Date
     var nappyChanged: Bool
     var date: Date
+    /// Creation timestamp. SwiftData models use stored `var` properties; do not mutate after init.
+    var createdAt: Date
 
     init(
         childName: String,
@@ -19,7 +21,8 @@ final class DiaryLog {
         napStart: Date,
         napEnd: Date,
         nappyChanged: Bool,
-        date: Date
+        date: Date,
+        createdAt: Date = Date()
     ) {
         self.childName = childName
         self.activity = activity
@@ -28,6 +31,13 @@ final class DiaryLog {
         self.napEnd = napEnd
         self.nappyChanged = nappyChanged
         self.date = date
+        self.createdAt = createdAt
+    }
+
+    /// Nap length in whole minutes (not persisted).
+    var napDurationMinutes: Int {
+        let seconds = napEnd.timeIntervalSince(napStart)
+        let minutes = Int(seconds / 60.0)
+        return max(0, minutes)
     }
 }
-
