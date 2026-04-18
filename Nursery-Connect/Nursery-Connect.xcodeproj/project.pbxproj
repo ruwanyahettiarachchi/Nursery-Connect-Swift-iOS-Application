@@ -64,6 +64,7 @@
 				3A9A68702F7429C5005E145A /* Nursery-Connect */,
 				4B7E10012F80000100A1B2C3 /* Nursery-ConnectTests */,
 				3A9A686F2F7429C5005E145A /* Products */,
+				3AB7406F2F92A53F00B73FE8 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -74,6 +75,14 @@
 				4B7E10022F80000100A1B2C3 /* Nursery-ConnectTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3AB7406F2F92A53F00B73FE8 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				4B7E10032F80000100A1B2C3 /* XCTest.framework */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
