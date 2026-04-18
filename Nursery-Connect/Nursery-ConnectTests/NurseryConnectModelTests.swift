@@ -36,6 +36,22 @@ final class NurseryConnectModelTests: XCTestCase {
         XCTAssertEqual(savedEntries.count, 1)
         XCTAssertEqual(savedEntries.first?.activity, "Outdoor play")
         XCTAssertEqual(savedEntries.first?.mood, "Happy")
+        XCTAssertNotNil(savedEntries.first?.createdAt)
+    }
+
+    func testNapDurationMinutesComputesWholeMinutes() {
+        let start = Date(timeIntervalSince1970: 0)
+        let end = start.addingTimeInterval(90 * 60)
+        let log = DiaryLog(
+            childName: "Test",
+            activity: "Nap",
+            mood: "Tired",
+            napStart: start,
+            napEnd: end,
+            nappyChanged: false,
+            date: start
+        )
+        XCTAssertEqual(log.napDurationMinutes, 90)
     }
 
     func testIncidentCreationSavesAndFetches() throws {
@@ -61,6 +77,6 @@ final class NurseryConnectModelTests: XCTestCase {
         XCTAssertEqual(savedIncidents.count, 1)
         XCTAssertEqual(savedIncidents.first?.bodyPart, "Head")
         XCTAssertEqual(savedIncidents.first?.descriptionText, "Minor bump while running indoors.")
+        XCTAssertNotNil(savedIncidents.first?.createdAt)
     }
 }
-
