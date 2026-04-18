@@ -79,4 +79,75 @@ final class NurseryConnectModelTests: XCTestCase {
         XCTAssertEqual(savedIncidents.first?.descriptionText, "Minor bump while running indoors.")
         XCTAssertNotNil(savedIncidents.first?.createdAt)
     }
+
+    func testDiaryLogPersistsAcrossModelContexts() throws {
+        let container = try makeInMemoryContainer()
+        let writeContext = ModelContext(container)
+        let log = DiaryLog(
+            childName: "Mia Johnson",
+            activity: "Painting",
+            mood: "Happy",
+            napStart: Date(),
+            napEnd: Date(),
+            nappyChanged: false,
+            date: Date()
+        )
+        writeContext.insert(log)
+        try writeContext.save()
+
+        let readContext = ModelContext(container)
+        let descriptor = FetchDescriptor<DiaryLog>(
+            predicate: #Predicate { $0.childName == "Mia Johnson" }
+        )
+        let fetched = try readContext.fetch(descriptor)
+        XCTAssertEqual(fetched.count, 1)
+        XCTAssertEqual(fetched.first?.activity, "Painting")
+    }
+
+    func testIncidentPersistsAcrossModelContexts() throws {
+        let container = try makeInMemoryContainer()
+        let writeContext = ModelContext(container)
+        let incident = Incident(
+            childName: "Noah Williams",
+            date: Date(),
+            descriptionText: "Scraped knee on playground.",
+            bodyPart: "Leg"
+        )
+        writeContext.insert(incident)
+        try writeContext.save()
+
+        let readContext = ModelContext(container)
+        let descriptor = FetchDescriptor<Incident>(
+            predicate: #Predicate { $0.childName == "Noah Williams" }
+        )
+        let fetched = try readContext.fetch(descriptor)
+        XCTAssertEqual(fetched.count, 1)
+        XCTAssertEqual(fetched.first?.bodyPart, "Leg")
+    }
+
+    func testNapDurationMinutesTruncatesPartialMinutesAndClampsNegative() {
+        let start = Date(timeIntervalSince1970: 1000)
+        let partial = start.addingTimeInterval(90.5 * 60)
+        let partialLog = DiaryLog(
+            childName: "Test",
+            activity: "Nap",
+            mood: "Tired",
+            napStart: start,
+            napEnd: partial,
+            nappyChanged: false,
+            date: start
+        )
+        XCTAssertEqual(partialLog.napDurationMinutes, 90)
+
+        let reversed = DiaryLog(
+            childName: "Test",
+            activity: "Nap",
+            mood: "Tired",
+            napStart: start.addingTimeInterval(3600),
+            napEnd: start,
+            nappyChanged: false,
+            date: start
+        )
+        XCTAssertEqual(reversed.napDurationMinutes, 0)
+    }
 }

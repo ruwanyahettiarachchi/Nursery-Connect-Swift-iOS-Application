@@ -60,6 +60,7 @@ struct AddIncidentView: View {
                     }
                     TextEditor(text: $descriptionText)
                         .frame(minHeight: 140)
+                        .accessibilityIdentifier("incident.description")
                         .onChange(of: descriptionText) { _, newValue in
                             if newValue.count > maxDescriptionLength {
                                 descriptionText = String(newValue.prefix(maxDescriptionLength))
@@ -87,6 +88,7 @@ struct AddIncidentView: View {
                 Button(isEditing ? "Save" : "Submit") {
                     submitIncident()
                 }
+                .accessibilityIdentifier("incident.submit")
             }
         }
         .alert("Unable to Submit Incident", isPresented: $showAlert) {

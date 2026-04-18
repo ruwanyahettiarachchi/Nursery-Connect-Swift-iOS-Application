@@ -22,6 +22,7 @@ struct DashboardView: View {
                                 } label: {
                                     childRow(child)
                                 }
+                                .accessibilityIdentifier("dashboard.child.\(child.name)")
                             }
                         }
                         .opacity(didAnimateListIn ? 1.0 : 0.0)
@@ -58,6 +59,7 @@ struct DashboardView: View {
         for child in samples {
             modelContext.insert(child)
         }
+        try? modelContext.save()
     }
 
     private var headerBlock: some View {

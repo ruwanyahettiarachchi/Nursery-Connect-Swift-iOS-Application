@@ -255,6 +255,7 @@ struct ChildDetailView: View {
             }
             .buttonStyle(NurseryTapAnimationStyle())
             .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .accessibilityIdentifier("detail.addIncident")
         }
         .nurseryCard()
     }
