@@ -353,12 +353,22 @@ struct ChildDetailView: View {
 
                 Spacer(minLength: 0)
 
-                Label(
-                    log.nappyChanged ? "Nappy changed" : "No change",
-                    systemImage: log.nappyChanged ? "checkmark.circle.fill" : "circle"
-                )
-                .font(.caption)
-                .foregroundStyle(log.nappyChanged ? NurseryTheme.mint : .secondary)
+                if log.nappyRecorded {
+                    Label(
+                        log.nappyChanged ? "Nappy changed" : "No change",
+                        systemImage: log.nappyChanged ? "checkmark.circle.fill" : "circle"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(log.nappyChanged ? NurseryTheme.mint : .secondary)
+                }
+            }
+
+            if !log.meals.isEmpty {
+                let types = Array(Set(log.meals.map(\.type))).sorted().joined(separator: ", ")
+                Label("\(log.meals.count) meal\(log.meals.count == 1 ? "" : "s") • \(types)", systemImage: "fork.knife")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 2)
             }
         }
         .padding(14)
